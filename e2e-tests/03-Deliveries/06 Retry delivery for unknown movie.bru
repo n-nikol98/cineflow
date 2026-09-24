@@ -1,0 +1,27 @@
+meta {
+  name: Retry delivery for unknown movie
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/deliveries/999999999/retry
+  body: none
+  auth: none
+}
+
+tests {
+  test("a movie id that was never created returns 404 with the standard error shape", function () {
+    expect(res.status).to.equal(404);
+    expect(res.body.code).to.equal("NOT_FOUND");
+    expect(res.body.message).to.be.a("string").and.not.empty;
+  });
+}
+
+docs {
+  # Retry delivery for unknown movie
+
+  Negative-path check, always safe to run standalone: `999999999` is never a real
+  movie id, so there is no delivery to reset either - mirroring
+  `02 Get delivery status for unknown movie`, but for the retry endpoint.
+}

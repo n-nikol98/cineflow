@@ -1,0 +1,35 @@
+meta {
+  name: Get import status for completed import
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/imports/{{importId}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("returns the completed task's final status, record count, and no error", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.id).to.equal(Number(bru.getVar("importId")));
+    expect(res.body.fileName).to.equal("valid-multi-movie.xml");
+    expect(res.body.status).to.equal("COMPLETED");
+    expect(res.body.recordCount).to.be.at.least(0);
+    expect(res.body.error).to.be.empty;
+  });
+}
+
+docs {
+  # Get import status for completed import
+  
+  Requires "Upload valid multi-movie import" to have run first in this same
+  execution, so `{{importId}}` is set and the task has already reached a terminal
+  status (that request polls it to completion itself).
+  
+  This is the dedicated, standalone success path for `GET /imports/{id}` - a plain
+  request with its own assertions, the same pattern used for
+  `03-Deliveries/01 Get delivery status for imported movie` - rather than only
+  being exercised implicitly inside another request's polling script.
+}

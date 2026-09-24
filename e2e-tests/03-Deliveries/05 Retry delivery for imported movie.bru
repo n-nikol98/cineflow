@@ -1,0 +1,52 @@
+meta {
+  name: Retry delivery for imported movie
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/deliveries/{{e2eMovieId}}/retry
+  body: none
+  auth: none
+}
+
+script:post-response {
+  // Different Bruno/CLI versions expose the response body under `.data` or `.body`.
+  const unwrap = (response) => response && response.data === undefined ? 
+        response && response.body : response.data;
+  
+  const requestConfig = {
+    method: "GET",
+    url: `${bru.getEnvVar("baseUrl")}/deliveries/${bru.getVar("e2eMovieId")}`
+  };
+  const response = await bru.sendRequest(requestConfig);
+  
+  const delivery = unwrap(response);
+  bru.setVar("e2eDeliveryAfterRetry", JSON.stringify(delivery));
+}
+
+tests {
+  test("retry succeeds with no body", function () {
+    expect(res.status).to.equal(204);
+  });
+  
+  test("the delivery is reset back to PENDING with a clean attempt count", function () {
+    const after = JSON.parse(bru.getVar("e2eDeliveryAfterRetry"));
+    expect(after.status).to.equal("PENDING");
+    expect(after.attempts).to.equal(0);
+    expect(after.lastError).to.be.null;
+  });
+}
+
+docs {
+  # Retry delivery for imported movie
+  
+  Requires "Look up movie by natural key" (in `02-Movies`) to have run first, so
+  `{{e2eMovieId}}` is set.
+  
+  `POST /deliveries/{id}/retry` unconditionally resets a movie's delivery back to
+  `PENDING` (regardless of its previous status or attempt count), so the next
+  scheduled run picks it up again. This is asserted directly rather than by
+  observing an eventual `SENT`/`FAILED` outcome, since that depends on the
+  scheduled delivery cron and is inherently timing-dependent.
+}

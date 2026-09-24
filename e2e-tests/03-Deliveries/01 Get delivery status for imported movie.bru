@@ -1,0 +1,34 @@
+meta {
+  name: Get delivery status for imported movie
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/deliveries/{{e2eMovieId}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("every movie has a delivery status, since one is created alongside it", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.movieId).to.equal(Number(bru.getVar("e2eMovieId")));
+    expect(res.body.status).to.be.oneOf(["PENDING", "SENT", "FAILED"]);
+    expect(res.body.attempts).to.be.at.least(0);
+  });
+}
+
+docs {
+  # Get delivery status for imported movie
+
+  Requires "Look up movie by natural key" (in `02-Movies`) to have run first, so
+  `{{e2eMovieId}}` is set.
+
+  Every `Movie` gets a `MovieDelivery` created alongside it in its constructor, so
+  this always returns `200`, never a "no delivery yet" state - the delivery's
+  actual status (`PENDING`/`SENT`/`FAILED`) depends on the scheduled delivery cron
+  and the mock outbound server's configurable failure rate, both of which are
+  timing-dependent, so only the response shape is asserted here, not a specific
+  status.
+}

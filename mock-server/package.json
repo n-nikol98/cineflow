@@ -1,0 +1,11 @@
+{
+  "name": "cineflow-mock-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Minimal dependency-free mock downstream server for CineFlow's outbound delivery feature.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

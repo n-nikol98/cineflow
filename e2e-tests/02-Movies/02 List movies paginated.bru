@@ -1,0 +1,33 @@
+meta {
+  name: List movies paginated
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/movies?page=0&size=2
+  body: none
+  auth: none
+}
+
+params:query {
+  page: 0
+  size: 2
+}
+
+tests {
+  test("honors explicit paging parameters", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.size).to.equal(2);
+    expect(res.body.number).to.equal(0);
+    expect(res.body.content.length).to.be.at.most(2);
+  });
+}
+
+docs {
+  # List movies paginated
+
+  Same endpoint as "List movies default page", but with explicit `page`/`size`
+  query parameters, confirming the backend actually honors them rather than always
+  returning its default page.
+}

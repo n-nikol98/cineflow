@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Fixture for the dedicated "race condition example" folder only: a single, brand-new
+  movie. The demo request in that folder uploads this exact file twice, concurrently,
+  against a database that has never seen this movie before. See that folder's
+  request/docs for why the outcome is best-effort and non-deterministic, and why this
+  fixture must not be reused anywhere else in the suite (reusing it would make it a
+  duplicate rather than "brand new", defeating the race).
+-->
+<movies>
+    <movie>
+        <title>E2E Race Condition Example Movie</title>
+        <releaseYear>2024</releaseYear>
+        <director id="e2e-director-race">E2E Race Director</director>
+    </movie>
+</movies>

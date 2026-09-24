@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Fixture: exactly one well-formed movie, exercising the smallest possible valid
+  import (as opposed to valid-multi-movie.xml, which covers several movies and
+  every optional field at once).
+
+  NOTE: This file is static, so re-running the E2E suite against a database that
+  already contains this movie (title + director + release year) will simply skip
+  it as a duplicate (recordCount 0 on the JSON response) rather than fail the
+  import - see ImportWriter#persistIfNew in the backend. The test asserts the
+  task reaches COMPLETED with recordCount 0 or 1 instead of an exact count, so
+  the suite stays green whether it is run once or a hundred times.
+-->
+<movies>
+    <movie>
+        <title>E2E Single Movie</title>
+        <releaseYear>2005</releaseYear>
+        <director id="e2e-single-director">E2E Single Director</director>
+    </movie>
+</movies>

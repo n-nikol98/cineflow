@@ -1,0 +1,62 @@
+meta {
+  name: Upload file with missing required field
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/imports
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  file: @file(fixtures/invalid-missing-director.xml)
+}
+
+script:post-response {
+  const TERMINAL = ["COMPLETED", "FAILED"];
+  const MAX_ATTEMPTS = 40;
+  const WAIT_MS = 250;
+  
+  // Different Bruno/CLI versions expose the response body under `.data` or `.body`.
+  const unwrap = (response) => response && response.data === undefined ? 
+        response && response.body : response.data;
+  
+  let task = res.body;
+  const importId = task.id;
+  bru.setVar("importId", importId);
+  const requestConfig = {
+    method: "GET",
+    url: `${bru.getEnvVar("baseUrl")}/imports/${importId}`
+  };
+  
+  let attempts = 0;
+  while (!TERMINAL.includes(task.status) && attempts < MAX_ATTEMPTS) {
+    await bru.sleep(WAIT_MS);
+    const response = await bru.sendRequest(requestConfig);
+    task = unwrap(response);
+    attempts++;
+  }
+  
+  bru.setVar("missingFieldImportStatus", task.status);
+  bru.setVar("missingFieldImportError", task.error);
+}
+
+tests {
+  test("the task fails schema validation rather than getting stuck", function () {
+    expect(bru.getVar("missingFieldImportStatus")).to.equal("FAILED");
+  });
+  
+  test("the task reports a non-blank error message", function () {
+    expect(bru.getVar("missingFieldImportError")).to.be.a("string").and.not.empty;
+  });
+}
+
+docs {
+  # Upload file with missing required field
+  
+  Uploads a movie missing its required `<director>` element. `import.xsd` schema
+  validation rejects the whole file up front, so the task should end up `FAILED`
+  with a descriptive error, without persisting anything.
+}

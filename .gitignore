@@ -1,0 +1,21 @@
+*.env
+.env
+.env.*
+
+# Log4j2 rolling file output
+backend/logs/
+
+# Locally-downloaded build toolchain (Maven/JDK), not part of the project source
+.tools/
+
+# Maven build output
+backend/target/
+
+# Node/Angular build output and dependencies
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+mock-server/node_modules/
+
+# IDE
+.vscode/

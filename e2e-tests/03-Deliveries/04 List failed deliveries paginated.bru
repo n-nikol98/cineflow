@@ -1,0 +1,42 @@
+meta {
+  name: List failed deliveries paginated
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/deliveries/failed?page=0&size=2
+  body: none
+  auth: none
+}
+
+params:query {
+  page: 0
+  size: 2
+}
+
+tests {
+  test("honors explicit paging parameters", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.size).to.equal(2);
+    expect(res.body.number).to.equal(0);
+    expect(res.body.content.length).to.be.at.most(2);
+    res.body.content.forEach((delivery) => {
+      expect(delivery.status).to.equal("FAILED");
+    });
+  });
+}
+
+docs {
+  # List failed deliveries paginated
+
+  Same endpoint as "List failed deliveries default page", but with explicit
+  `page`/`size` query parameters, confirming the backend actually honors them
+  rather than always returning its default page - mirroring
+  `02-Movies/02 List movies paginated`.
+
+  Whether any delivery has actually failed yet depends on the scheduled delivery
+  cron and the mock outbound server's configurable failure rate - both
+  timing-dependent - so this only asserts the page envelope's shape and that every
+  entry present (if any) is genuinely `FAILED`, not that the list is non-empty.
+}

@@ -1,0 +1,26 @@
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Proxy API calls to the backend service (see docker-compose.yml).
+    location /api/ {
+        # Configurable via NGINX_MAX_BODY_SIZE (default 12M, see docker-compose.yml)
+        # so it can be kept above the backend's own IMPORT_MAX_REQUEST_SIZE
+        # (11MB by default). Otherwise uploads under that backend limit would
+        # still be rejected here by nginx's own default 1MB limit, before ever
+        # reaching the backend's dedicated 413 FILE_TOO_LARGE handler.
+        client_max_body_size ${NGINX_MAX_BODY_SIZE};
+        proxy_pass http://backend:8080/api/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Angular client-side routing fallback.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

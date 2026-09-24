@@ -1,0 +1,74 @@
+meta {
+  name: Upload valid single movie import
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/imports
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  file: @file(fixtures/valid-single-movie.xml)
+}
+
+script:post-response {
+  const TERMINAL = ["COMPLETED", "FAILED"];
+  const MAX_ATTEMPTS = 40;
+  const WAIT_MS = 250;
+  
+  // Different Bruno/CLI versions expose the response body under `.data` or `.body`.
+  const unwrap = (response) => response && response.data === undefined ? 
+        response && response.body : response.data;
+  
+  let task = res.body;
+  const singleImportId = task.id;
+  bru.setVar("singleImportId", singleImportId);
+  const requestConfig = {
+    method: "GET",
+    url: `${bru.getEnvVar("baseUrl")}/imports/${singleImportId}`
+  };
+  
+  let attempts = 0;
+  while (!TERMINAL.includes(task.status) && attempts < MAX_ATTEMPTS) {
+    await bru.sleep(WAIT_MS);
+    const response = await bru.sendRequest(requestConfig);
+    task = unwrap(response);
+    attempts++;
+  }
+  
+  bru.setVar("singleImportStatus", task.status);
+  bru.setVar("singleImportRecordCount", task.recordCount);
+  bru.setVar("singleImportError", task.error);
+}
+
+tests {
+  test("upload is accepted and queued immediately", function () {
+    expect(res.status).to.equal(202);
+    expect(res.body.id).to.be.a("number");
+    expect(res.body.fileName).to.equal("valid-single-movie.xml");
+    expect(res.body.status).to.equal("QUEUED");
+  });
+  
+  test("the file with a single movie is imported successfully with no error", function () {
+    expect(bru.getVar("singleImportStatus")).to.equal("COMPLETED");
+    // 1 the first time this fixture is ever imported, 0 on every later re-run.
+    expect(bru.getVar("singleImportRecordCount")).to.be.oneOf([0, 1]);
+    expect(bru.getVar("singleImportError")).to.be.empty;
+  });
+}
+
+docs {
+  # Upload valid single movie import
+  
+  Uploads `fixtures/valid-single-movie.xml`, containing exactly one well-formed
+  movie, and polls `GET /imports/{id}` until the async pipeline finishes, then
+  asserts it completed cleanly.
+  
+  This complements "01 Upload valid multi-movie import" (several movies, every
+  optional field exercised at least once): this one covers the smallest possible
+  valid import - a single movie with only its required fields - to make sure the
+  pipeline does not assume more than one `<movie>` element is present.
+}

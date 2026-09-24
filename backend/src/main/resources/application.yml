@@ -1,0 +1,29 @@
+server:
+  servlet:
+    context-path: /api
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/cineflow}
+    username: ${DB_USERNAME:app}
+    password: ${DB_PASSWORD:changeme}
+  jpa:
+    hibernate.ddl-auto: update
+    open-in-view: false
+  servlet:
+    multipart:
+      max-file-size: ${IMPORT_MAX_FILE_SIZE:10MB}
+      max-request-size: ${IMPORT_MAX_REQUEST_SIZE:11MB}
+app:
+  import:
+    concurrency: ${IMPORT_CONCURRENCY:4}
+    stale-after: ${IMPORT_STALE_AFTER:PT10M}
+    check-interval: ${IMPORT_STALE_CHECK_INTERVAL:PT5M}
+  delivery:
+    url: ${DELIVERY_URL:}
+    cron: ${DELIVERY_CRON:-}
+    concurrency: ${DELIVERY_CONCURRENCY:8}
+  retry:
+    max-attempts: ${RETRY_MAX_ATTEMPTS:3}
+    initial-delay: ${RETRY_INITIAL_DELAY:1000}
+    multiplier: ${RETRY_MULTIPLIER:2}
+    max-delay: ${RETRY_MAX_DELAY:30000}

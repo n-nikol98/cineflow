@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:cineflow-test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+  jpa:
+    hibernate.ddl-auto: create-drop
+  task:
+    scheduling:
+      enabled: false
+app:
+  import:
+    concurrency: 1
+    stale-after: PT10M
+    check-interval: PT5M
+  delivery:
+    url:
+    cron: "-"
+    concurrency: 1
+  retry:
+    max-attempts: 1
+    initial-delay: 10
+    multiplier: 1
+    max-delay: 10

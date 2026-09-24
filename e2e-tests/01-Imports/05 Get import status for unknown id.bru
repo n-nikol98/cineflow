@@ -1,0 +1,27 @@
+meta {
+  name: Get import status for unknown id
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/imports/999999999
+  body: none
+  auth: none
+}
+
+tests {
+  test("an import task id that was never created returns 404 with the standard error shape", function () {
+    expect(res.status).to.equal(404);
+    expect(res.body.code).to.equal("NOT_FOUND");
+    expect(res.body.message).to.be.a("string").and.not.empty;
+  });
+}
+
+docs {
+  # Get import status for unknown id
+
+  A negative-path check: `999999999` is never a real import task id (auto-increment
+  starts at 1), so this always 404s regardless of what else has run before it,
+  making it safe to run standalone or as part of the full suite.
+}

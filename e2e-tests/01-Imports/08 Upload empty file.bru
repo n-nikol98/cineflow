@@ -1,0 +1,31 @@
+meta {
+  name: Upload empty file
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/imports
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  file: @file(fixtures/empty.xml)
+}
+
+tests {
+  test("an empty upload is rejected synchronously, before any async task is created", function () {
+    expect(res.status).to.equal(400);
+    expect(res.body.code).to.equal("EMPTY_FILE");
+    expect(res.body.message).to.be.a("string").and.not.empty;
+  });
+}
+
+docs {
+  # Upload empty file
+
+  Uploads a zero-byte file. This is rejected synchronously with `400 EMPTY_FILE`
+  before an `ImportTask` is even created, so there is nothing to poll here, unlike
+  every other upload test in this folder.
+}

@@ -1,0 +1,46 @@
+volumes:
+  postgres-data: {}
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-cineflow}
+      POSTGRES_USER: ${DB_USER:-app}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+    ports: ["5432:5432"]
+    volumes: ["postgres-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-app} -d ${DB_NAME:-cineflow}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  backend:
+    build:
+      context: ./backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mock-server:
+        condition: service_started
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-cineflow}
+      DB_USERNAME: ${DB_USER:-app}
+      DB_PASSWORD: ${DB_PASSWORD:-changeme}
+      DELIVERY_URL: ${DELIVERY_URL:-http://mock-server:9090}
+      DELIVERY_CRON: ${DELIVERY_CRON:-*/30 * * * * *}
+    ports: ["8080:8080"]
+    volumes: ["./backend/logs:/app/logs"]
+  frontend:
+    build:
+      context: ./frontend
+    depends_on:
+      - backend
+    environment:
+      NGINX_MAX_BODY_SIZE: ${NGINX_MAX_BODY_SIZE:-12M}
+    ports: ["4200:80"]
+  mock-server:
+    build:
+      context: ./mock-server
+    environment:
+      FAILURE_RATE: ${MOCK_OUTBOUND_FAILURE_RATE:-0.2}
+    ports: ["9090:9090"]

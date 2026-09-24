@@ -1,0 +1,46 @@
+<main class="container py-5">
+  <img
+    class="app-logo d-block mx-auto"
+    src="assets/logo.svg"
+    alt="Movie Import"
+  >
+
+  <p class="text-muted text-center">
+    Give your movie catalog a head start. Drop in an XML file and we will
+    take it from there.
+  </p>
+
+  <input
+    #fileInput
+    class="form-control file-input mb-3"
+    type="file"
+    accept=".xml"
+    multiple
+    (change)="pick(fileInput)"
+  >
+
+  <button
+    class="btn btn-primary d-block mx-auto px-4"
+    [disabled]="selectedFiles.length === 0 || submitting"
+    (click)="upload(fileInput)"
+  >
+    {{ submitting ? 'Starting imports…' : buttonLabel }}
+  </button>
+
+  <div *ngIf="imports.length > 0" class="import-results mt-4">
+    <h2 class="h5 text-center">Import status</h2>
+
+    <div class="import-results-list">
+      <div
+        *ngFor="let task of imports"
+        class="alert mb-2"
+        [class.alert-info]="isInProgress(task.status)"
+        [class.alert-success]="task.status === 'COMPLETED'"
+        [class.alert-danger]="task.status === 'FAILED' || task.submissionFailed"
+      >
+        <strong>{{ task.fileName }}</strong>
+        <span class="ms-2">{{ taskMessage(task) }}</span>
+      </div>
+    </div>
+  </div>
+</main>

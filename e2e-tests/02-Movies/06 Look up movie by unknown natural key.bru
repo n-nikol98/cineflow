@@ -1,0 +1,32 @@
+meta {
+  name: Look up movie by unknown natural key
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/movies/lookup?title=No Such Movie&directorId=no-such-director&releaseYear=1900
+  body: none
+  auth: none
+}
+
+params:query {
+  title: No Such Movie
+  directorId: no-such-director
+  releaseYear: 1900
+}
+
+tests {
+  test("a natural key that matches nothing returns 404 with the standard error shape", function () {
+    expect(res.status).to.equal(404);
+    expect(res.body.code).to.equal("NOT_FOUND");
+    expect(res.body.message).to.be.a("string").and.not.empty;
+  });
+}
+
+docs {
+  # Look up movie by unknown natural key
+  
+  Negative-path check for `GET /movies/lookup`, always safe to run standalone:
+  this title/director/year combination is never a real movie.
+}

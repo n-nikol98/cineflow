@@ -1,0 +1,40 @@
+meta {
+  name: Lookup movie by natural key
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/movies/lookup?title=E2E Multi Movie One&directorId=e2e-director-1&releaseYear=2001
+  body: none
+  auth: none
+}
+
+params:query {
+  title: E2E Multi Movie One
+  directorId: e2e-director-1
+  releaseYear: 2001
+}
+
+script:post-response {
+  bru.setVar("e2eMovieId", res.body.id);
+}
+
+tests {
+  test("resolves the freshly imported movie using only its natural key", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.title).to.equal("E2E Multi Movie One");
+    expect(res.body.releaseYear).to.equal(2001);
+    expect(res.body.director).to.deep.equal({ id: "e2e-director-1", name: "E2E Director One" });
+  });
+}
+
+docs {
+  # Look up movie by natural key
+  
+  Requires "01 Upload valid multi-movie import" (in `01-Imports`) to have run first in this database.
+  
+  `GET /movies/lookup` looks a movie up by its natural key (`title` + `directorId` + `releaseYear`) instead of its database id. This is the exact information a failed import or duplicate-detection error message contains (see `ImportWriter#persistIfNew`), so this endpoint lets a caller go straight from "movie X by director Y in year Z failed to import/deliver" to the movie's id, without paging through `GET /movies` looking for it manually.
+  
+  Since the natural key is known statically from the fixture XML, this is also the most direct way to obtain the freshly-imported movie's id - so it stashes it in `{{e2eMovieId}}` for later requests (`04 Find imported movie by title`, `05 Get movie by id` in this folder, and the delivery requests in `03-Deliveries`) to use directly.
+}

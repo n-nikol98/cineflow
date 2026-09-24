@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Fixture: the exact same movie (same title/director/release year) listed twice in
+  one file. ImportWriter deduplicates within a single file deterministically and
+  in-memory, so this is a safe, repeatable way to exercise the duplicate-skipping
+  logic - unlike the true cross-file race, there is no timing dependency here: the
+  import always persists the movie exactly once and skips the second occurrence.
+-->
+<movies>
+    <movie>
+        <title>E2E Duplicate Movie</title>
+        <releaseYear>2015</releaseYear>
+        <director id="e2e-director-dup">E2E Duplicate Director</director>
+    </movie>
+    <movie>
+        <title>E2E Duplicate Movie</title>
+        <releaseYear>2015</releaseYear>
+        <director id="e2e-director-dup">E2E Duplicate Director</director>
+    </movie>
+</movies>

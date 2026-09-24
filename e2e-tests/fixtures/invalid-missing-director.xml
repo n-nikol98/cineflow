@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Fixture: well-formed XML that violates import.xsd - the <movie> is missing its
+  required <director> element. Schema validation rejects the whole file, so the
+  import task should end up FAILED with a non-blank error message.
+-->
+<movies>
+    <movie>
+        <title>E2E Missing Director Movie</title>
+        <releaseYear>2022</releaseYear>
+    </movie>
+</movies>

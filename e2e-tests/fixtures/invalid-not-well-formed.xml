@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Fixture: not well-formed XML (an unclosed <movie> tag). The parser cannot even
+  build a DOM/JAXB tree from this, so the import task should end up FAILED.
+-->
+<movies>
+    <movie>
+        <title>E2E Malformed Movie
+        <releaseYear>2022</releaseYear>
+    </movie>
+</movies>

@@ -1,0 +1,29 @@
+meta {
+  name: List movies default page
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/movies
+  body: none
+  auth: none
+}
+
+tests {
+  test("returns a well-formed page of movies", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body).to.have.property("content").that.is.an("array");
+    expect(res.body).to.have.property("totalElements").that.is.a("number");
+    expect(res.body).to.have.property("number", 0);
+  });
+}
+
+docs {
+  # List movies default page
+
+  Calls `GET /movies` with no paging parameters, relying on Spring Data's default
+  page (0, size 20). Only asserts the page envelope's shape, since the exact
+  content depends on everything imported so far in this run (and any previous run
+  against the same database).
+}

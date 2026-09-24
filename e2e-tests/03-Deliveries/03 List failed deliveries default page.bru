@@ -1,0 +1,36 @@
+meta {
+  name: List failed deliveries default page
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/deliveries/failed
+  body: none
+  auth: none
+}
+
+tests {
+  test("returns a well-formed default page of failed deliveries", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body).to.have.property("content").that.is.an("array");
+    expect(res.body).to.have.property("totalElements").that.is.a("number");
+    expect(res.body).to.have.property("number", 0);
+    res.body.content.forEach((delivery) => {
+      expect(delivery.status).to.equal("FAILED");
+    });
+  });
+}
+
+docs {
+  # List failed deliveries default page
+
+  Calls `GET /deliveries/failed` with no paging parameters, relying on Spring
+  Data's default page (0, size 20) - the non-paginated counterpart to
+  "List failed deliveries paginated", mirroring `02-Movies/01` and `02-Movies/02`.
+
+  Whether any delivery has actually failed yet depends on the scheduled delivery
+  cron and the mock outbound server's configurable failure rate - both
+  timing-dependent - so this only asserts the page envelope's shape and that every
+  entry present (if any) is genuinely `FAILED`, not that the list is non-empty.
+}

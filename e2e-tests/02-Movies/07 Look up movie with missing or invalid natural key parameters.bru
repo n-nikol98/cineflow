@@ -1,0 +1,40 @@
+meta {
+  name: Look up movie with missing or invalid natural key parameters
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/movies/lookup?title=&directorId=e2e-director-1&releaseYear=not-a-year
+  body: none
+  auth: none
+}
+
+params:query {
+  title: 
+  directorId: e2e-director-1
+  releaseYear: not-a-year
+}
+
+tests {
+  test("a blank title and a non-numeric releaseYear return 400, not a 404 or 500", function () {
+    expect(res.status).to.equal(400);
+    expect(res.body.code).to.equal("INVALID_REQUEST");
+    expect(res.body.message).to.be.a("string").and.not.empty;
+  });
+}
+
+docs {
+  # Look up movie with missing or invalid natural key parameters
+  
+  Negative-path check for `GET /movies/lookup`: an omitted/blank required field, or a
+  `releaseYear` that cannot be parsed as an integer, must fail fast with
+  `400 Bad Request` and code `INVALID_REQUEST` - not silently bind `null`/skip
+  validation and return a misleading `404`, and not fall through to the generic
+  exception handler as a `500`.
+  
+  This combines two failures in one request (blank `title`, non-numeric
+  `releaseYear`) since `MovieController#lookup` validates and reports every
+  invalid field at once; the "unknown natural key" request (earlier in this
+  folder) already covers the well-formed-but-nonexistent case.
+}

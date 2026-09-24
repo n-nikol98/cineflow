@@ -1,0 +1,38 @@
+meta {
+  name: Get movie by id
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/movies/{{e2eMovieId}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("returns the same, fully-mapped movie that was imported", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.id).to.equal(Number(bru.getVar("e2eMovieId")));
+    expect(res.body.title).to.equal("E2E Multi Movie One");
+    expect(res.body.releaseYear).to.equal(2001);
+    expect(res.body.durationMinutes).to.equal(120);
+    expect(res.body.genres).to.have.members(["Drama", "Mystery"]);
+    expect(res.body.director).to.deep.equal({ id: "e2e-director-1", name: "E2E Director One" });
+    expect(res.body.actors.map((actor) => actor.id)).to.have.members(["e2e-actor-1", "e2e-actor-2"]);
+    expect(res.body.description).to.equal("A movie used purely to exercise the E2E import pipeline.");
+  });
+}
+
+docs {
+  # Get movie by id
+  
+  Requires "Look up movie by natural key" (earlier in this folder) to have run
+  first, so `{{e2eMovieId}}` is set.
+  
+  This is the dedicated, standalone success path for `GET /movies/{id}` - a plain
+  request with its own assertions, the same pattern used for
+  `03-Deliveries/01 Get delivery status for imported movie` - asserting every
+  field round-trips correctly, including genres, director, actors, and
+  description.
+}

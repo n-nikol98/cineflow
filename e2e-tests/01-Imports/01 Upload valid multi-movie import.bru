@@ -1,0 +1,81 @@
+meta {
+  name: Upload valid multi-movie import
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/imports
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  file: @file(fixtures/valid-multi-movie.xml)
+}
+
+script:post-response {
+  const TERMINAL = ["COMPLETED", "FAILED"];
+  const MAX_ATTEMPTS = 40;
+  const WAIT_MS = 250;
+  
+  // Different Bruno/CLI versions expose the response body under `.data` or `.body`.
+  const unwrap = (response) => response && response.data === undefined ? 
+        response && response.body : response.data;
+  
+  let task = res.body;
+  const importId = task.id;
+  bru.setVar("importId", importId);
+  const requestConfig = {
+    method: "GET",
+    url: `${bru.getEnvVar("baseUrl")}/imports/${importId}`
+  };
+  
+  let attempts = 0;
+  while (!TERMINAL.includes(task.status) && attempts < MAX_ATTEMPTS) {
+    await bru.sleep(WAIT_MS);
+    const response = await bru.sendRequest(requestConfig);
+    task = unwrap(response);
+    attempts++;
+  }
+  
+  bru.setVar("importStatus", task.status);
+  bru.setVar("importRecordCount", task.recordCount);
+  bru.setVar("importError", task.error);
+  bru.setVar("importAttempts", attempts);
+}
+
+tests {
+  test("upload is accepted and queued immediately", function () {
+    expect(res.status).to.equal(202);
+    expect(res.body.id).to.be.a("number");
+    expect(res.body.fileName).to.equal("valid-multi-movie.xml");
+    expect(res.body.status).to.equal("QUEUED");
+  });
+  
+  test("the task reaches a terminal state before the poll budget runs out", function () {
+    expect(bru.getVar("importStatus"),
+      `still ${bru.getVar("importStatus")} after ${bru.getVar("importAttempts")} polls`
+    ).to.be.oneOf(["COMPLETED", "FAILED"]);
+  });
+  
+  test("the file is imported successfully with no error", function () {
+    expect(bru.getVar("importStatus")).to.equal("COMPLETED");
+    expect(bru.getVar("importRecordCount")).to.be.at.least(0);
+    expect(bru.getVar("importError")).to.be.empty;
+  });
+}
+
+docs {
+  # Upload valid multi-movie import
+  
+  Uploads `fixtures/valid-multi-movie.xml` (three distinct, well-formed movies) and
+  polls `GET /imports/{id}` until the async pipeline finishes, then asserts it
+  completed cleanly.
+  
+  The fixture file is static, so re-running this whole suite against a database
+  that already has these movies simply skips them as duplicates (`recordCount: 0`)
+  instead of failing - see `ImportWriter#persistIfNew` in the backend. That is why
+  this test only asserts `recordCount >= 0` and `status: COMPLETED`, not an exact
+  count: it stays green whether this is the first run ever or the hundredth.
+}

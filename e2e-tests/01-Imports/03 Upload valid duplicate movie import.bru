@@ -1,0 +1,66 @@
+meta {
+  name: Upload valid duplicate movie import
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/imports
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  file: @file(fixtures/valid-duplicate-movie.xml)
+}
+
+script:post-response {
+  const TERMINAL = ["COMPLETED", "FAILED"];
+  const MAX_ATTEMPTS = 40;
+  const WAIT_MS = 250;
+  
+  // Different Bruno/CLI versions expose the response body under `.data` or `.body`.
+  const unwrap = (response) => response && response.data === undefined ? 
+        response && response.body : response.data;
+  
+  let task = res.body;
+  const dupPmportId = task.id;
+  bru.setVar("dupPmportId", dupPmportId);
+  const requestConfig = {
+    method: "GET",
+    url: `${bru.getEnvVar("baseUrl")}/imports/${dupPmportId}`
+  };
+  
+  let attempts = 0;
+  while (!TERMINAL.includes(task.status) && attempts < MAX_ATTEMPTS) {
+    await bru.sleep(WAIT_MS);
+    const response = await bru.sendRequest(requestConfig);
+    task = unwrap(response);
+    attempts++;
+  }
+  
+  bru.setVar("dupImportStatus", task.status);
+  bru.setVar("dupImportRecordCount", task.recordCount);
+}
+
+tests {
+  test("the task completes despite the in-file duplicate", function () {
+    expect(bru.getVar("dupImportStatus")).to.equal("COMPLETED");
+  });
+  
+  test("the duplicate movie is persisted at most once", function () {
+    // 1 the first time this fixture is ever imported, 0 on every later re-run
+    // (both occurrences of the movie are now duplicates of an already-persisted one).
+    expect(bru.getVar("dupImportRecordCount")).to.be.oneOf([0, 1]);
+  });
+}
+
+docs {
+  # Upload valid duplicate movie import
+  
+  Uploads a file listing the exact same movie twice. `ImportWriter` deduplicates
+  within a single file deterministically and in-memory before persisting, so this
+  is a safe, always-repeatable way to exercise duplicate-skipping - unlike the true
+  cross-file race demonstrated in `04-Race-Condition-Example`, there is no timing
+  dependency here.
+}
