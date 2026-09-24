@@ -5,7 +5,7 @@
 ### Upload your favorite movies using XML files!
 
 
-They will be submitted through a minimal Angular frontend and pass through a Spring Boot 3 / Java 21 / PostgreSQL backend which supports multipart uploads, asynchronous persistence and retryable scheduled outbound delivery.
+They will be submitted with the help of a minimal Angular frontend and pass through a Spring Boot 3 / Java 21 / PostgreSQL backend which supports multipart uploads, asynchronous persistence and retryable scheduled outbound delivery.
 
 ## Run
 
