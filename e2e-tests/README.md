@@ -46,13 +46,9 @@ This runs, in order:
    (schema validation failure); uploads a genuinely malformed (not well-formed)
    XML file; uploads an empty file (rejected synchronously); and checks the 404
    path for an unknown import id.
-2. **`02-Movies`** - lists movies (default and explicit paging), looks up the movie
-   imported in step 1 by its distinctive title, fetches it via a dedicated
-   `GET /movies/{id}` request and asserts every field round-trips correctly,
-   resolves that same movie via its natural key with `GET /movies/lookup`
-   (`title` + `directorId` + `releaseYear` - the same fields a failed-import or
-   duplicate error message contains, so this endpoint lets you go straight from
-   that error to the movie's id), checks the 404 path for an unknown natural
+2. **`02-Movies`** - lists movies (default and explicit paging),
+   looks up the movie imported in step 1 via its natural key with `GET /movies/lookup`
+   (`title` + `directorId` + `releaseYear`, checks the 404 path for an unknown natural
    key, checks the 400 path for a missing/invalid natural key parameter, and
    checks the 404 path for an unknown movie id.
 3. **`03-Deliveries`** - checks a freshly-imported movie's delivery status via a
@@ -72,7 +68,7 @@ You should see all requests pass:
 
 ```
 Requests      21 (21 Passed)
-Tests         27/27
+Tests         28/28
 ```
 
 ### Why some tests only assert response *shape*
@@ -84,10 +80,10 @@ predicted. Tests that touch delivery status (`03-Deliveries/01` and `.../03`) on
 assert the response shape and that returned statuses are one of the valid enum
 values, rather than asserting a specific status.
 
-### Why fixtures are safe to re-run
+### Why fixtures are safe to rerun
 
 The fixture XML files are static, and movies are unique by
-`(title, director, releaseYear)`. Re-running this suite against a database that
+`(title, director, releaseYear)`. Rerunning this suite against a database that
 already has these movies simply skips them as duplicates (`recordCount: 0`) rather
 than failing - see `ImportWriter#persistIfNew` in the backend. Tests assert
 `status: COMPLETED` and `recordCount >= 0`, never an exact count, so the suite stays
@@ -119,10 +115,7 @@ contextPath: api
 baseUrl: {{protocol}}://{{host}}:{{port}}/{{contextPath}}
 ```
 
-The defaults match `docker-compose.yml`'s default port mapping and
-`application.yml`'s `server.servlet.context-path` (`/api`) - `contextPath` itself
-holds just the path segment, without a leading slash, since `baseUrl` supplies the
-separator explicitly. Every request in this collection uses `{{baseUrl}}`, so to
+Every request in this collection uses `{{baseUrl}}`, so to
 point the suite elsewhere, edit whichever of `protocol`/`host`/`port`/`contextPath`
 changed (or override it on the CLI, e.g.
 `--env-var port=9090`) rather than editing `baseUrl` itself.
