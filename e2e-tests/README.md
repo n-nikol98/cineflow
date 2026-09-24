@@ -93,15 +93,6 @@ than failing - see `ImportWriter#persistIfNew` in the backend. Tests assert
 `status: COMPLETED` and `recordCount >= 0`, never an exact count, so the suite stays
 green whether it's the first run ever or the hundredth.
 
-## `04-Race-Condition-Example`
-
-A separate, dedicated folder demonstrating the backend's documented duplicate-movie
-race condition (see `ImportWriter`'s class Javadoc in the backend). It is
-**deliberately excluded** from the commands above - run it on its own, following the
-instructions in `04-Race-Condition-Example/folder.bru`, since it needs a special
-`--csv-file-path`/`--parallel` invocation to fire two genuinely concurrent uploads,
-and its outcome is best-effort/non-deterministic rather than a guaranteed pass.
-
 ## Collection layout
 
 ```
@@ -112,7 +103,6 @@ e2e-tests/
   01-Imports/                   POST /imports, GET /imports/{id}
   02-Movies/                    GET /movies, GET /movies/{id}, GET /movies/lookup
   03-Deliveries/                GET /deliveries/{id}, GET /deliveries/failed, POST /deliveries/{id}/retry
-  04-Race-Condition-Example/    dedicated, opt-in duplicate-movie race demo
 ```
 
 ## Configuration

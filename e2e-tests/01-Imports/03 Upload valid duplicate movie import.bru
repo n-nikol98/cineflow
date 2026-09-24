@@ -60,7 +60,5 @@ docs {
   
   Uploads a file listing the exact same movie twice. `ImportWriter` deduplicates
   within a single file deterministically and in-memory before persisting, so this
-  is a safe, always-repeatable way to exercise duplicate-skipping - unlike the true
-  cross-file race demonstrated in `04-Race-Condition-Example`, there is no timing
-  dependency here.
+  is a safe, always-repeatable way to exercise duplicate-skipping.
 }
