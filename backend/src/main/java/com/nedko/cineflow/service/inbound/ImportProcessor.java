@@ -110,21 +110,6 @@ class ImportProcessor {
     }
 
     /**
-     * Marks {@code task} as {@code FAILED} with {@code message} and logs the underlying
-     * {@code exception}.
-     *
-     * @param task the task to fail
-     * @param id the task's identifier, for logging
-     * @param message the human-readable failure description to record on the task
-     * @param exception the underlying failure, logged alongside {@code message}
-     */
-    private void fail(final ImportTask task, final Long id, final String message, final Exception exception) {
-        task.setStatus(ImportTask.Status.FAILED);
-        task.setErrorMessage(message);
-        log.error("Import task {} failed: {}", id, message, exception);
-    }
-
-    /**
      * Unmarshals {@code bytes} into a {@link MoviesXml}, validating it against the
      * import XSD.
      *
@@ -137,6 +122,21 @@ class ImportProcessor {
         final Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         unmarshaller.setSchema(schema);
         return (MoviesXml) unmarshaller.unmarshal(createSecureSource(bytes));
+    }
+
+    /**
+     * Marks {@code task} as {@code FAILED} with {@code message} and logs the underlying
+     * {@code exception}.
+     *
+     * @param task the task to fail
+     * @param id the task's identifier, for logging
+     * @param message the human-readable failure description to record on the task
+     * @param exception the underlying failure, logged alongside {@code message}
+     */
+    private void fail(final ImportTask task, final Long id, final String message, final Exception exception) {
+        task.setStatus(ImportTask.Status.FAILED);
+        task.setErrorMessage(message);
+        log.error("Import task {} failed: {}", id, message, exception);
     }
 
     /**
