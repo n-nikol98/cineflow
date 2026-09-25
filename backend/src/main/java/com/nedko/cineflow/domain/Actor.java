@@ -12,11 +12,12 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.AccessLevel;
 
 @Entity
 @Table(name = "actor")
 @Getter
-@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Actor {
 
     @Id

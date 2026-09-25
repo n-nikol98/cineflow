@@ -14,6 +14,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import lombok.Getter;
+import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
@@ -21,7 +22,7 @@ import lombok.Setter;
 @Table(name = "movie_delivery")
 @Getter
 @Setter
-@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MovieDelivery {
 
     @Id

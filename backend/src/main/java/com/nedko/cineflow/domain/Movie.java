@@ -18,6 +18,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.OneToOne;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -28,7 +29,7 @@ import lombok.Setter;
             {"title", "director_id", "release_year"}))
 @Getter
 @Setter
-@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Movie {
 
     @Id
