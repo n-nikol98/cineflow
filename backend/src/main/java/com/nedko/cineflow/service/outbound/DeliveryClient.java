@@ -3,6 +3,7 @@ package com.nedko.cineflow.service.outbound;
 import java.util.concurrent.CompletableFuture;
 
 import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -11,9 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import com.nedko.cineflow.config.AppProperties;
+import com.nedko.cineflow.config.AppProperties.Delivery;
 import com.nedko.cineflow.domain.Movie;
 import com.nedko.cineflow.service.outbound.model.DeliveryCandidate;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -29,12 +30,22 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 class DeliveryClient {
 
-    private final AppProperties properties;
     private final DeliveryRecorder recorder;
-    private final RestClient client = RestClient.create();
+    private final String url;
+    private final RestClient client;
+
+    DeliveryClient(final DeliveryRecorder recorder, final AppProperties properties) {
+        this.recorder = recorder;
+        final Delivery delivery = properties.delivery();
+        url = delivery.url();
+        final SimpleClientHttpRequestFactory requestFactory =
+                new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(delivery.connectTimeout());
+        requestFactory.setReadTimeout(delivery.responseTimeout());
+        client = RestClient.builder().requestFactory(requestFactory).build();
+    }
 
     /**
      * Takes an already-mapped {@link DeliveryCandidate} rather than mapping the movie
@@ -66,7 +77,6 @@ class DeliveryClient {
     CompletableFuture<Boolean> send(final DeliveryCandidate candidate) {
         final Movie movie = candidate.movie();
         final Long id = movie.getId();
-        final String url = properties.delivery().url();
         log.debug("Attempting delivery of movie {} to {}", id, url);
 
         recorder.attempt(movie);

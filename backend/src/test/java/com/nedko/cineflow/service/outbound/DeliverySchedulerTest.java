@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -69,6 +70,8 @@ class DeliverySchedulerTest {
     private static final String FAILURE_MESSAGE = "boom";
     private static final String DELIVERY_URL = "http://receiver";
     private static final String BLANK_DELIVERY_URL = " ";
+    private static final Duration DELIVERY_CONNECT_TIMEOUT = Duration.ofSeconds(5);
+    private static final Duration DELIVERY_RESPONSE_TIMEOUT = Duration.ofSeconds(30);
     private static final String CRON_EXPRESSION = "-";
     private static final int DELIVERY_CONCURRENCY = 2;
     private static final String CONFLICT_MESSAGE = "Movie " + MOVIE_ID + "'s delivery is "
@@ -106,7 +109,8 @@ class DeliverySchedulerTest {
         second.setId(SECOND_MOVIE_ID);
         final DeliveryCandidate firstCandidate = new DeliveryCandidate(first, movieMapper.toDto(first));
         final DeliveryCandidate secondCandidate = new DeliveryCandidate(second, movieMapper.toDto(second));
-        when(properties.delivery()).thenReturn(new AppProperties.Delivery(DELIVERY_URL, 
+        when(properties.delivery()).thenReturn(new AppProperties.Delivery(DELIVERY_URL,
+            DELIVERY_CONNECT_TIMEOUT, DELIVERY_RESPONSE_TIMEOUT,
             CRON_EXPRESSION, DELIVERY_CONCURRENCY));
         when(deliveryLoader.findEligible()).thenReturn(List.of(firstCandidate, secondCandidate));
         when(client.send(firstCandidate)).thenReturn(CompletableFuture.completedFuture(true));
@@ -121,7 +125,8 @@ class DeliverySchedulerTest {
 
     @Test
     void scheduledSendDoesNothingWhenDeliveryUrlIsBlank() {
-        when(properties.delivery()).thenReturn(new AppProperties.Delivery(BLANK_DELIVERY_URL, 
+        when(properties.delivery()).thenReturn(new AppProperties.Delivery(BLANK_DELIVERY_URL,
+            DELIVERY_CONNECT_TIMEOUT, DELIVERY_RESPONSE_TIMEOUT,
             CRON_EXPRESSION, DELIVERY_CONCURRENCY));
 
         scheduler.scheduledSend();

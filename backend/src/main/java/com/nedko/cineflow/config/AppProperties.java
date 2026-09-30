@@ -24,7 +24,17 @@ public record AppProperties(Delivery delivery, @Name("import") Import importProp
     public record Import(int concurrency, Duration staleAfter, Duration checkInterval) {
     }
 
-    public record Delivery(String url, String cron, int concurrency) {
+    /**
+     * Configuration for outbound delivery scheduling and HTTP communication.
+     *
+     * @param url downstream endpoint
+     * @param connectTimeout maximum time to establish the downstream connection
+     * @param responseTimeout maximum time to wait for a downstream response
+     * @param cron cron expression that triggers delivery
+     * @param concurrency maximum simultaneous delivery tasks
+     */
+    public record Delivery(String url, Duration connectTimeout, Duration responseTimeout,
+        String cron, int concurrency) {
     }
 
     /**

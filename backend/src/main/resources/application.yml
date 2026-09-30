@@ -20,6 +20,8 @@ app:
     check-interval: ${IMPORT_STALE_CHECK_INTERVAL:PT5M}
   delivery:
     url: ${DELIVERY_URL:}
+    connect-timeout: ${DELIVERY_CONNECT_TIMEOUT:PT5S}
+    response-timeout: ${DELIVERY_RESPONSE_TIMEOUT:PT30S}
     cron: ${DELIVERY_CRON:-}
     concurrency: ${DELIVERY_CONCURRENCY:8}
   retry:

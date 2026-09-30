@@ -14,7 +14,9 @@ app:
     stale-after: PT10M
     check-interval: PT5M
   delivery:
-    url:
+    url: http://localhost:8080/delivery
+    connect-timeout: PT5S
+    response-timeout: PT30S
     cron: "-"
     concurrency: 1
   retry:

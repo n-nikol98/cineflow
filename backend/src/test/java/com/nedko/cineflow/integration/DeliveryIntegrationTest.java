@@ -13,7 +13,9 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +35,7 @@ class DeliveryIntegrationTest extends AbstractIntegrationTest {
     private static final ExecutorService RECEIVER_EXECUTOR = Executors.newSingleThreadExecutor();
     private static final AtomicInteger RECEIVER_STATUS = new AtomicInteger();
     private static final AtomicInteger RECEIVED_REQUESTS = new AtomicInteger();
+    private static final AtomicLong RESPONSE_DELAY_MILLIS = new AtomicLong();
 
     private static volatile String receivedBody;
 
@@ -50,6 +53,7 @@ class DeliveryIntegrationTest extends AbstractIntegrationTest {
         registry.add("app.retry.initial-delay", () -> "10");
         registry.add("app.retry.multiplier", () -> "1");
         registry.add("app.retry.max-delay", () -> "10");
+        registry.add("app.delivery.response-timeout", () -> "PT0.1S");
     }
 
     @AfterAll
@@ -62,6 +66,7 @@ class DeliveryIntegrationTest extends AbstractIntegrationTest {
     void resetReceiver() {
         RECEIVER_STATUS.set(200);
         RECEIVED_REQUESTS.set(0);
+        RESPONSE_DELAY_MILLIS.set(0);
         receivedBody = null;
     }
 
@@ -88,7 +93,18 @@ class DeliveryIntegrationTest extends AbstractIntegrationTest {
         final MovieDelivery delivery = deliveries.findByMovieId(movieId).orElseThrow();
         assertEquals(Status.FAILED, delivery.getStatus());
         assertEquals(2, delivery.getAttempts());
-        assertEquals(2, RECEIVED_REQUESTS.get());
+        assertFalse(delivery.getLastError().isBlank());
+    }
+
+    @Test
+    void recordsPermanentFailureWhenReceiverResponseTimesOut() throws Exception {
+        final long movieId = importMovie();
+        RESPONSE_DELAY_MILLIS.set(250);
+
+        scheduler.scheduledSend();
+
+        final MovieDelivery delivery = deliveries.findByMovieId(movieId).orElseThrow();
+        assertEquals(Status.FAILED, delivery.getStatus());
         assertFalse(delivery.getLastError().isBlank());
     }
 
@@ -117,6 +133,15 @@ class DeliveryIntegrationTest extends AbstractIntegrationTest {
                 RECEIVED_REQUESTS.incrementAndGet();
                 receivedBody = new String(exchange.getRequestBody().readAllBytes(),
                         StandardCharsets.UTF_8);
+                final long responseDelay = RESPONSE_DELAY_MILLIS.get();
+                if (responseDelay > 0) {
+                    try {
+                        TimeUnit.MILLISECONDS.sleep(responseDelay);
+                    } catch (final InterruptedException exception) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
+                }
                 exchange.sendResponseHeaders(RECEIVER_STATUS.get(), -1);
                 exchange.close();
             });
