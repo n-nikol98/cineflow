@@ -74,8 +74,9 @@ public class DeliveryScheduler {
                 .map(Delivery::url).filter(Predicate.not(Strings::isBlank))
                 .ifPresent(url -> {
                     final List<DeliveryCandidate> candidates = deliveryLoader.findEligible();
+                    final long total = candidates.size();
                     log.info("Scheduled delivery run found {} movie(s) eligible for delivery",
-                            candidates.size());
+                            total);
                     final List<CompletableFuture<Boolean>> deliveries = candidates.stream()
                             .map(candidate -> {
                                 try {
@@ -94,7 +95,7 @@ public class DeliveryScheduler {
                                     .count())
                             .join();
                     log.info("Scheduled delivery run finished: {} succeeded, {} failed",
-                            succeeded, candidates.size() - succeeded);
+                            succeeded, total - succeeded);
                 });
     }
 
